@@ -1,7 +1,7 @@
 /* Metalika Urenstaat / Timesheet — Service Worker
    Cache-first strategy for full offline support.
    Bump CACHE_NAME on every deploy that changes any cached file. */
-const CACHE_NAME = 'metalika-timesheet-v2';
+const CACHE_NAME = 'metalika-timesheet-v3';
 
 const PRECACHE_ASSETS = [
   './',

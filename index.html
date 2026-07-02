@@ -979,7 +979,7 @@ function buildPDF(d) {
 
   // --- Header ---
   if (logoDataUrl) {
-    try { doc.addImage(logoDataUrl, 'PNG', marginX, y, 42, 14); } catch (e) { /* ignore */ }
+    try { doc.addImage(logoDataUrl, 'PNG', marginX, y, 40, 16); } catch (e) { /* ignore */ }
   }
   doc.setFont(PDF_FONT, 'bold');
   doc.setFontSize(16);
