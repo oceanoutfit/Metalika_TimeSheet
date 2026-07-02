@@ -1,0 +1,1288 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1A3A6B">
+<meta name="description" content="Metalika d.o.o. — Urenstaat / Timesheet app">
+<title>Metalika — Urenstaat / Timesheet</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<style>
+  :root{
+    --navy:#1A3A6B;
+    --navy-dark:#122a4d;
+    --orange:#F28C1E;
+    --white:#ffffff;
+    --grey:#6b7280;
+    --grey-light:#f2f4f7;
+    --grey-border:#e2e5ea;
+    --green:#2E7D32;
+    --green-light:#e8f5e9;
+    --radius-card:10px;
+    --radius-input:8px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:var(--grey-light);
+    color:#1a1a1a;
+    -webkit-tap-highlight-color:transparent;
+  }
+  #app{
+    max-width:480px;
+    margin:0 auto;
+    min-height:100vh;
+    background:var(--white);
+    display:flex;
+    flex-direction:column;
+    box-shadow:0 0 24px rgba(0,0,0,0.06);
+  }
+  /* Header */
+  header.app-header{
+    background:var(--navy);
+    color:var(--white);
+    padding:14px 16px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  header.app-header img.logo{
+    height:34px;
+    width:auto;
+    border-radius:4px;
+    background:var(--white);
+    padding:2px 6px;
+  }
+  header.app-header .title-block{flex:1;min-width:0;}
+  header.app-header .title-block h1{
+    font-size:15px;margin:0;font-weight:700;line-height:1.2;
+  }
+  header.app-header .title-block .sub{
+    font-size:11px;color:#cdd9ec;margin-top:2px;
+  }
+  /* Banners */
+  .banner{
+    font-size:12.5px;
+    padding:8px 16px;
+    display:none;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+  }
+  .banner.show{display:flex;}
+  #offlineBanner{background:#3a3a3a;color:#fff;}
+  #installBanner{background:var(--orange);color:#fff;}
+  #installBanner button{
+    background:var(--white);color:var(--orange);border:none;border-radius:6px;
+    padding:6px 12px;font-weight:700;font-size:12px;
+  }
+  #installBanner .dismiss{background:transparent;color:#fff;font-weight:400;padding:6px 8px;}
+  #toast{
+    position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(20px);
+    background:var(--navy-dark);color:#fff;padding:10px 18px;border-radius:8px;
+    font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s, transform .2s;
+    z-index:200;max-width:90%;text-align:center;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  /* Tabs */
+  nav.tabs{
+    display:flex;
+    border-bottom:1px solid var(--grey-border);
+    background:var(--white);
+    position:sticky;top:0;z-index:10;
+  }
+  nav.tabs button{
+    flex:1;
+    border:none;background:none;
+    padding:12px 8px;
+    font-size:14px;font-weight:600;
+    color:var(--grey);
+    display:flex;align-items:center;justify-content:center;gap:6px;
+    border-bottom:3px solid transparent;
+  }
+  nav.tabs button.active{
+    color:var(--navy);
+    border-bottom-color:var(--orange);
+  }
+  .badge{
+    background:var(--orange);color:#fff;
+    font-size:11px;font-weight:700;
+    border-radius:10px;
+    min-width:18px;height:18px;
+    display:inline-flex;align-items:center;justify-content:center;
+    padding:0 5px;
+  }
+  .badge.zero{display:none;}
+  /* Views */
+  main{flex:1;padding:16px;padding-bottom:32px;}
+  .view{display:none;}
+  .view.active{display:block;}
+  /* Cards / fields */
+  .card{
+    background:var(--white);
+    border:1px solid var(--grey-border);
+    border-radius:var(--radius-card);
+    padding:14px;
+    margin-bottom:14px;
+  }
+  .field{margin-bottom:14px;}
+  .field:last-child{margin-bottom:0;}
+  label.field-label{
+    display:block;font-size:13.5px;font-weight:600;color:var(--navy);margin-bottom:2px;
+  }
+  label.field-label .en{
+    display:block;font-size:11px;font-weight:400;color:var(--grey);margin-top:1px;
+  }
+  input[type=text],input[type=number],input[type=date],textarea,select{
+    width:100%;
+    border:1px solid var(--grey-border);
+    border-radius:var(--radius-input);
+    padding:10px 12px;
+    font-size:15px;
+    font-family:inherit;
+    background:var(--white);
+    color:#1a1a1a;
+  }
+  input:focus,textarea:focus{outline:none;border-color:var(--navy);}
+  textarea{resize:vertical;min-height:70px;}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+  .note-italic{
+    font-style:italic;font-size:11.5px;color:var(--grey);margin-top:5px;line-height:1.4;
+  }
+  .section-title{
+    font-size:13px;font-weight:700;color:var(--navy);
+    text-transform:uppercase;letter-spacing:.03em;
+    margin:0 0 10px;
+  }
+  .total-box{
+    background:var(--navy);color:#fff;
+    border-radius:var(--radius-card);
+    padding:14px;
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:14px;
+  }
+  .total-box .label{font-size:13px;}
+  .total-box .label .en{display:block;font-size:10.5px;color:#cdd9ec;}
+  .total-box .value{font-size:24px;font-weight:700;}
+  /* Buttons */
+  .btn{
+    display:block;width:100%;
+    border:none;border-radius:var(--radius-input);
+    padding:13px 16px;
+    font-size:15px;font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+    margin-bottom:10px;
+    text-align:center;
+  }
+  .btn:last-child{margin-bottom:0;}
+  .btn-primary{background:var(--navy);color:#fff;}
+  .btn-orange{background:var(--orange);color:#fff;}
+  .btn-green{background:var(--green);color:#fff;}
+  .btn-outline{background:#fff;color:var(--navy);border:1.5px solid var(--navy);}
+  .btn-outline-muted{background:#fff;color:var(--grey);border:1.5px solid var(--grey-border);}
+  .btn:disabled{opacity:.45;cursor:not-allowed;}
+  /* Drafts list */
+  .draft-item{
+    background:#fff;border:1px solid var(--grey-border);border-radius:var(--radius-card);
+    padding:12px 14px;margin-bottom:10px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+  }
+  .draft-item .info{min-width:0;}
+  .draft-item .worker{font-weight:700;font-size:14.5px;color:var(--navy);}
+  .draft-item .meta{font-size:12.5px;color:var(--grey);margin-top:3px;line-height:1.5;}
+  .status-badge{
+    font-size:11px;font-weight:700;border-radius:6px;padding:4px 8px;white-space:nowrap;
+  }
+  .status-badge.draft{background:#fdeacc;color:#94590b;}
+  .status-badge.signed{background:var(--green-light);color:var(--green);}
+  .empty-state{
+    text-align:center;color:var(--grey);font-size:13.5px;padding:40px 10px;
+  }
+  /* Review view */
+  .kv-row{
+    display:flex;justify-content:space-between;padding:7px 0;
+    border-bottom:1px solid var(--grey-border);font-size:14px;
+  }
+  .kv-row:last-child{border-bottom:none;}
+  .kv-row .k{color:var(--grey);}
+  .kv-row .v{font-weight:600;text-align:right;}
+  table.hours-table{width:100%;border-collapse:collapse;font-size:13.5px;}
+  table.hours-table td{padding:8px 6px;border-bottom:1px solid var(--grey-border);}
+  table.hours-table tr:nth-child(even){background:var(--grey-light);}
+  table.hours-table td.hval{text-align:right;font-weight:700;}
+  .approved-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--green-light);color:var(--green);
+    font-weight:700;font-size:12.5px;
+    padding:6px 10px;border-radius:8px;margin-bottom:10px;
+  }
+  /* Signature */
+  .sig-wrap{
+    border:1.5px dashed var(--grey-border);border-radius:var(--radius-input);
+    background:#fbfbfc;position:relative;overflow:hidden;touch-action:none;
+  }
+  #signatureCanvas{display:block;width:100%;height:150px;touch-action:none;}
+  .sig-placeholder{
+    position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    color:#c3c7cf;font-size:13px;pointer-events:none;
+  }
+  img.sig-img{max-width:100%;max-height:110px;border:1px solid var(--grey-border);border-radius:6px;background:#fff;}
+  .tag-line{display:flex;justify-content:space-between;font-size:12px;color:var(--grey);margin-top:6px;}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="app-header">
+    <img class="logo" src="assets/metalika_logo.png" alt="Metalika">
+    <div class="title-block">
+      <h1>Urenstaat <span style="color:#cdd9ec;font-weight:400;">/ Timesheet</span></h1>
+      <div class="sub">Metalika d.o.o. — www.metalika.si</div>
+    </div>
+  </header>
+
+  <div id="offlineBanner" class="banner">
+    <span>📴 Brez povezave — podatki se shranjujejo lokalno. / Offline — data saved locally.</span>
+  </div>
+
+  <div id="installBanner" class="banner">
+    <span>📲 Namesti aplikacijo / Install app</span>
+    <span style="display:flex;gap:6px;">
+      <button id="installBtn">Namesti / Install</button>
+      <button class="dismiss" id="installDismissBtn">✕</button>
+    </span>
+  </div>
+
+  <nav class="tabs">
+    <button id="tabNewBtn" class="active" onclick="showView('form')">
+      🆕 Nov vnos <span style="color:var(--grey);font-weight:400;">/ New</span>
+    </button>
+    <button id="tabDraftsBtn" onclick="showView('drafts')">
+      📋 Osnutki <span style="color:var(--grey);font-weight:400;">/ Drafts</span>
+      <span id="draftCountBadge" class="badge zero">0</span>
+    </button>
+  </nav>
+
+  <main>
+
+    <!-- ===================== FORM VIEW ===================== -->
+    <section id="view-form" class="view active">
+      <form id="timesheetForm" onsubmit="return false;">
+
+        <div class="card">
+          <div class="section-title">Podatki / Details</div>
+
+          <div class="field">
+            <label class="field-label" for="workerName">Ime delavca <span class="en">Worker name</span></label>
+            <input type="text" id="workerName" required autocomplete="name">
+          </div>
+
+          <div class="field">
+            <label class="field-label" for="project">Projekt / Ladjedelnica <span class="en">Project / Shipyard</span></label>
+            <input type="text" id="project" required>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label class="field-label" for="weekNumber">Teden <span class="en">Week</span></label>
+              <input type="number" id="weekNumber" min="1" max="53" required>
+            </div>
+            <div class="field">
+              <label class="field-label" for="yearNumber">Leto <span class="en">Year</span></label>
+              <input type="number" id="yearNumber" min="2020" max="2100" required>
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label class="field-label" for="dateFrom">Od <span class="en">Date from</span></label>
+              <input type="date" id="dateFrom" required>
+            </div>
+            <div class="field">
+              <label class="field-label" for="dateTo">Do <span class="en">Date to</span></label>
+              <input type="date" id="dateTo" required>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="section-title">Ure / Hours</div>
+
+          <div class="row2">
+            <div class="field">
+              <label class="field-label" for="hoursNormal">Redne ure (Pon–Pet) <span class="en">Normal (Mon–Fri)</span></label>
+              <input type="number" id="hoursNormal" min="0" step="0.5" value="0" class="hours-input">
+            </div>
+            <div class="field">
+              <label class="field-label" for="hoursOvertime">Nadure (Pon–Pet) <span class="en">Overtime (Mon–Fri)</span></label>
+              <input type="number" id="hoursOvertime" min="0" step="0.5" value="0" class="hours-input">
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label class="field-label" for="hoursSaturday">Sobota <span class="en">Saturday</span></label>
+              <input type="number" id="hoursSaturday" min="0" step="0.5" value="0" class="hours-input">
+            </div>
+            <div class="field">
+              <label class="field-label" for="hoursSunday">Nedelja <span class="en">Sunday</span></label>
+              <input type="number" id="hoursSunday" min="0" step="0.5" value="0" class="hours-input">
+            </div>
+          </div>
+
+          <div class="row2">
+            <div class="field">
+              <label class="field-label" for="hoursHoliday">Prazniki <span class="en">Public holidays</span></label>
+              <input type="number" id="hoursHoliday" min="0" step="0.5" value="0" class="hours-input">
+            </div>
+            <div class="field">
+              <label class="field-label" for="hoursForeign">Delo v tujini <span class="en">Foreign country work</span></label>
+              <input type="number" id="hoursForeign" min="0" step="0.5" value="0" class="hours-input">
+            </div>
+          </div>
+        </div>
+
+        <div class="total-box">
+          <div class="label">Skupaj ur <span class="en">Total hours</span></div>
+          <div class="value"><span id="totalHoursDisplay">0</span> h</div>
+        </div>
+
+        <div class="card">
+          <div class="field">
+            <label class="field-label" for="km">Prevoženi kilometri <span class="en">Kilometres driven</span></label>
+            <input type="number" id="km" min="0" step="1" value="0">
+            <div class="note-italic">Samo za interno evidenco — se ne zaračuna stranki. / For internal records only — not charged to client.</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="field">
+            <label class="field-label" for="notes">Opombe <span class="en">Notes (optional)</span></label>
+            <textarea id="notes" placeholder="Dodatne opombe... / Additional notes..."></textarea>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary" id="saveDraftBtn" onclick="saveDraft()">
+          💾 Shrani za odobritev stranke <span style="font-weight:400;">/ Save for Client Approval</span>
+        </button>
+        <button type="button" class="btn btn-outline-muted" onclick="clearForm(true)">
+          Počisti obrazec / Clear form
+        </button>
+      </form>
+    </section>
+
+    <!-- ===================== DRAFTS VIEW ===================== -->
+    <section id="view-drafts" class="view">
+      <div id="draftsList"></div>
+    </section>
+
+    <!-- ===================== REVIEW / SIGN VIEW ===================== -->
+    <section id="view-review" class="view">
+
+      <div id="reviewApprovedBadgeWrap"></div>
+
+      <div class="card">
+        <div class="section-title">Podatki / Details</div>
+        <div class="kv-row"><span class="k">Delavec / Worker</span><span class="v" id="rv-worker"></span></div>
+        <div class="kv-row"><span class="k">Projekt / Project</span><span class="v" id="rv-project"></span></div>
+        <div class="kv-row"><span class="k">Teden / Week</span><span class="v" id="rv-week"></span></div>
+        <div class="kv-row"><span class="k">Obdobje / Period</span><span class="v" id="rv-period"></span></div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Ure / Hours</div>
+        <table class="hours-table">
+          <tr><td>Redne ure / Normal</td><td class="hval" id="rv-normal"></td></tr>
+          <tr><td>Nadure / Overtime</td><td class="hval" id="rv-overtime"></td></tr>
+          <tr><td>Sobota / Saturday</td><td class="hval" id="rv-saturday"></td></tr>
+          <tr><td>Nedelja / Sunday</td><td class="hval" id="rv-sunday"></td></tr>
+          <tr><td>Prazniki / Holidays</td><td class="hval" id="rv-holiday"></td></tr>
+          <tr><td>Delo v tujini / Foreign</td><td class="hval" id="rv-foreign"></td></tr>
+        </table>
+      </div>
+
+      <div class="total-box">
+        <div class="label">Skupaj ur <span class="en">Total hours</span></div>
+        <div class="value"><span id="rv-total"></span> h</div>
+      </div>
+
+      <div class="card">
+        <div class="section-title">Kilometri / Kilometres</div>
+        <div class="kv-row"><span class="k">Prevoženi km / Driven</span><span class="v" id="rv-km"></span></div>
+        <div class="note-italic">Samo za interno evidenco — se ne zaračuna stranki. / For internal records only — not charged to client.</div>
+      </div>
+
+      <div class="card" id="rv-notes-card" style="display:none;">
+        <div class="section-title">Opombe / Notes</div>
+        <div style="font-size:14px;white-space:pre-wrap;" id="rv-notes"></div>
+      </div>
+
+      <!-- Unsigned: signature capture -->
+      <div class="card" id="rv-sign-card">
+        <div class="section-title">Podpis stranke / Client Signature</div>
+
+        <div class="field">
+          <label class="field-label" for="signerName">Ime podpisnika <span class="en">Signer name</span></label>
+          <input type="text" id="signerName" placeholder="Ime in priimek / Full name">
+        </div>
+
+        <div class="field">
+          <label class="field-label">Podpis <span class="en">Signature</span></label>
+          <div class="sig-wrap" id="sigWrap">
+            <span class="sig-placeholder" id="sigPlaceholder">Podpišite tukaj / Sign here</span>
+            <canvas id="signatureCanvas"></canvas>
+          </div>
+          <div class="tag-line">
+            <span></span>
+            <a href="#" onclick="clearSignature();return false;" style="color:var(--navy);">Počisti podpis / Clear</a>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-green" onclick="signAndApprove()">
+          ✅ Podpiši in odobri <span style="font-weight:400;">/ Sign &amp; Approve</span>
+        </button>
+      </div>
+
+      <!-- Signed: display -->
+      <div class="card" id="rv-signed-card" style="display:none;">
+        <div class="section-title">Odobritev / Approval</div>
+        <div class="kv-row"><span class="k">Podpisal/a / Approved by</span><span class="v" id="rv-signer"></span></div>
+        <div class="kv-row"><span class="k">Datum in čas / Date &amp; time</span><span class="v" id="rv-signedAt"></span></div>
+        <div style="margin-top:10px;">
+          <img class="sig-img" id="rv-sig-img" alt="Signature">
+        </div>
+      </div>
+
+      <button type="button" class="btn btn-orange" id="exportPdfBtn" style="display:none;" onclick="exportPDF()">
+        📄 Izvozi PDF <span style="font-weight:400;">/ Export PDF</span>
+      </button>
+      <button type="button" class="btn btn-outline" onclick="showView('drafts')">
+        ← Nazaj na osnutke / Back to Drafts
+      </button>
+      <button type="button" class="btn btn-outline-muted" id="deleteDraftBtn" onclick="deleteCurrentDraft()">
+        🗑 Izbriši osnutek / Delete Draft
+      </button>
+
+    </section>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script src="jspdf.umd.min.js"></script>
+<script>
+/* =========================================================================
+   METALIKA d.o.o. — Urenstaat / Timesheet PWA
+   Single-file client-side app. No backend. IndexedDB draft persistence.
+   ========================================================================= */
+
+/* ---------- Constants ---------- */
+const DB_NAME = 'MetalikaTimesheetDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'drafts';
+const LS_WORKER_KEY = 'metalika_worker_name';
+
+let db = null;
+let currentDraftData = null;   // set synchronously when opening review — used by exportPDF()
+let logoDataUrl = null;        // preloaded logo as data URL for PDF embedding
+let robotoRegularB64 = null;   // preloaded Roboto Regular TTF (base64, no data-URL prefix)
+let robotoBoldB64 = null;      // preloaded Roboto Bold TTF (base64, no data-URL prefix)
+let sigHasContent = false;
+let sigDrawing = false;
+let sigLastX = 0, sigLastY = 0;
+let sigCanvasReady = false;
+let deferredInstallPrompt = null;
+
+/* ---------- IndexedDB helpers ---------- */
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, DB_VERSION);
+    req.onupgradeneeded = (e) => {
+      const database = e.target.result;
+      if (!database.objectStoreNames.contains(STORE_NAME)) {
+        const store = database.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+        store.createIndex('status', 'status', { unique: false });
+        store.createIndex('createdAt', 'createdAt', { unique: false });
+      }
+    };
+    req.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbAdd(draft) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const req = tx.objectStore(STORE_NAME).add(draft);
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbPut(draft) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const req = tx.objectStore(STORE_NAME).put(draft);
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbGet(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).get(id);
+    req.onsuccess = (e) => resolve(e.target.result);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbGetAll() {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const req = tx.objectStore(STORE_NAME).getAll();
+    req.onsuccess = (e) => resolve(e.target.result || []);
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function dbDelete(id) {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    const req = tx.objectStore(STORE_NAME).delete(id);
+    req.onsuccess = () => resolve();
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
+/* ---------- ISO week helpers ---------- */
+function getCurrentISOWeek() {
+  const now = new Date();
+  const d = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const week = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  return { week, year: d.getUTCFullYear() };
+}
+
+function getDateRangeOfISOWeek(week, year) {
+  const simple = new Date(Date.UTC(year, 0, 1 + (week - 1) * 7));
+  const dow = simple.getUTCDay();
+  const monday = new Date(simple);
+  if (dow <= 4) {
+    monday.setUTCDate(simple.getUTCDate() - dow + 1);
+  } else {
+    monday.setUTCDate(simple.getUTCDate() + 8 - dow);
+  }
+  const sunday = new Date(monday);
+  sunday.setUTCDate(monday.getUTCDate() + 6);
+  return { from: monday, to: sunday };
+}
+
+function toISODateString(d) {
+  const y = d.getUTCFullYear();
+  const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(d.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function formatDateDisplay(isoStr) {
+  if (!isoStr) return '';
+  const [y, m, d] = isoStr.split('-');
+  return `${d}.${m}.${y}`;
+}
+
+function formatDateTimeDisplay(isoTimestamp) {
+  if (!isoTimestamp) return '';
+  const d = new Date(isoTimestamp);
+  const day = String(d.getDate()).padStart(2, '0');
+  const mon = String(d.getMonth() + 1).padStart(2, '0');
+  const yr = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2, '0');
+  const mm = String(d.getMinutes()).padStart(2, '0');
+  return `${day}.${mon}.${yr} ${hh}:${mm}`;
+}
+
+/* ---------- Form logic ---------- */
+function recalcDatesFromWeek() {
+  const week = parseInt(document.getElementById('weekNumber').value, 10);
+  const year = parseInt(document.getElementById('yearNumber').value, 10);
+  if (!week || !year) return;
+  const { from, to } = getDateRangeOfISOWeek(week, year);
+  document.getElementById('dateFrom').value = toISODateString(from);
+  document.getElementById('dateTo').value = toISODateString(to);
+}
+
+function recalcTotal() {
+  const ids = ['hoursNormal','hoursOvertime','hoursSaturday','hoursSunday','hoursHoliday','hoursForeign'];
+  let total = 0;
+  ids.forEach(id => {
+    const v = parseFloat(document.getElementById(id).value);
+    if (!isNaN(v)) total += v;
+  });
+  total = Math.round(total * 100) / 100;
+  document.getElementById('totalHoursDisplay').textContent = total;
+  return total;
+}
+
+function initFormDefaults() {
+  const savedName = localStorage.getItem(LS_WORKER_KEY);
+  if (savedName) document.getElementById('workerName').value = savedName;
+
+  const { week, year } = getCurrentISOWeek();
+  document.getElementById('weekNumber').value = week;
+  document.getElementById('yearNumber').value = year;
+  recalcDatesFromWeek();
+  recalcTotal();
+}
+
+function clearForm(showMsg) {
+  document.getElementById('timesheetForm').reset();
+  initFormDefaults();
+  if (showMsg) showToast('Obrazec počiščen / Form cleared');
+}
+
+function collectFormData() {
+  return {
+    workerName: document.getElementById('workerName').value.trim(),
+    project: document.getElementById('project').value.trim(),
+    week: parseInt(document.getElementById('weekNumber').value, 10) || 0,
+    year: parseInt(document.getElementById('yearNumber').value, 10) || 0,
+    dateFrom: document.getElementById('dateFrom').value,
+    dateTo: document.getElementById('dateTo').value,
+    hoursNormal: parseFloat(document.getElementById('hoursNormal').value) || 0,
+    hoursOvertime: parseFloat(document.getElementById('hoursOvertime').value) || 0,
+    hoursSaturday: parseFloat(document.getElementById('hoursSaturday').value) || 0,
+    hoursSunday: parseFloat(document.getElementById('hoursSunday').value) || 0,
+    hoursHoliday: parseFloat(document.getElementById('hoursHoliday').value) || 0,
+    hoursForeign: parseFloat(document.getElementById('hoursForeign').value) || 0,
+    totalHours: recalcTotal(),
+    km: parseFloat(document.getElementById('km').value) || 0,
+    notes: document.getElementById('notes').value.trim(),
+    status: 'draft',
+    signerName: null,
+    signatureDataUrl: null,
+    signedAt: null,
+    createdAt: new Date().toISOString()
+  };
+}
+
+async function saveDraft() {
+  const data = collectFormData();
+  if (!data.workerName) { showToast('Vnesite ime delavca / Enter worker name'); return; }
+  if (!data.project) { showToast('Vnesite projekt / Enter project'); return; }
+  if (!data.week || !data.year) { showToast('Vnesite teden / Enter week'); return; }
+
+  localStorage.setItem(LS_WORKER_KEY, data.workerName);
+
+  try {
+    await dbAdd(data);
+    showToast('Osnutek shranjen / Draft saved');
+    clearForm(false);
+    await refreshDraftCount();
+    showView('drafts');
+  } catch (err) {
+    console.error(err);
+    showToast('Napaka pri shranjevanju / Save error');
+  }
+}
+
+/* ---------- Drafts list ---------- */
+async function refreshDraftCount() {
+  const all = await dbGetAll();
+  const badge = document.getElementById('draftCountBadge');
+  badge.textContent = all.length;
+  badge.classList.toggle('zero', all.length === 0);
+  return all;
+}
+
+async function renderDraftsList() {
+  const listEl = document.getElementById('draftsList');
+  const all = await refreshDraftCount();
+
+  if (all.length === 0) {
+    listEl.innerHTML = '<div class="empty-state">Ni shranjenih osnutkov.<br><span style="font-size:12px;">No saved drafts yet.</span></div>';
+    return;
+  }
+
+  all.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  listEl.innerHTML = all.map(d => {
+    const statusClass = d.status === 'signed' ? 'signed' : 'draft';
+    const statusLabel = d.status === 'signed' ? 'PODPISANO' : 'OSNUTEK';
+    return `
+      <div class="draft-item" onclick="openReview(${d.id})">
+        <div class="info">
+          <div class="worker">${escapeHtml(d.workerName)}</div>
+          <div class="meta">
+            Teden ${d.week}/${d.year} · ${escapeHtml(d.project)}<br>
+            ${formatDateDisplay(d.dateFrom)} – ${formatDateDisplay(d.dateTo)}
+          </div>
+        </div>
+        <span class="status-badge ${statusClass}">${statusLabel}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---------- Review / Sign view ---------- */
+async function openReview(id) {
+  const draft = await dbGet(id);
+  if (!draft) { showToast('Osnutek ni najden / Draft not found'); return; }
+  currentDraftData = draft;
+  renderReview(draft);
+  showView('review');
+}
+
+function renderReview(d) {
+  document.getElementById('rv-worker').textContent = d.workerName;
+  document.getElementById('rv-project').textContent = d.project;
+  document.getElementById('rv-week').textContent = `${d.week} / ${d.year}`;
+  document.getElementById('rv-period').textContent = `${formatDateDisplay(d.dateFrom)} – ${formatDateDisplay(d.dateTo)}`;
+
+  document.getElementById('rv-normal').textContent = d.hoursNormal;
+  document.getElementById('rv-overtime').textContent = d.hoursOvertime;
+  document.getElementById('rv-saturday').textContent = d.hoursSaturday;
+  document.getElementById('rv-sunday').textContent = d.hoursSunday;
+  document.getElementById('rv-holiday').textContent = d.hoursHoliday;
+  document.getElementById('rv-foreign').textContent = d.hoursForeign;
+  document.getElementById('rv-total').textContent = d.totalHours;
+  document.getElementById('rv-km').textContent = `${d.km} km`;
+
+  const notesCard = document.getElementById('rv-notes-card');
+  if (d.notes) {
+    notesCard.style.display = '';
+    document.getElementById('rv-notes').textContent = d.notes;
+  } else {
+    notesCard.style.display = 'none';
+  }
+
+  const signCard = document.getElementById('rv-sign-card');
+  const signedCard = document.getElementById('rv-signed-card');
+  const exportBtn = document.getElementById('exportPdfBtn');
+  const deleteBtn = document.getElementById('deleteDraftBtn');
+  const badgeWrap = document.getElementById('reviewApprovedBadgeWrap');
+
+  if (d.status === 'signed') {
+    signCard.style.display = 'none';
+    signedCard.style.display = '';
+    exportBtn.style.display = '';
+    deleteBtn.style.display = 'none';
+    badgeWrap.innerHTML = '<div class="approved-badge">✅ Odobreno / Approved</div>';
+
+    document.getElementById('rv-signer').textContent = d.signerName || '';
+    document.getElementById('rv-signedAt').textContent = formatDateTimeDisplay(d.signedAt);
+    document.getElementById('rv-sig-img').src = d.signatureDataUrl || '';
+  } else {
+    signCard.style.display = '';
+    signedCard.style.display = 'none';
+    exportBtn.style.display = 'none';
+    deleteBtn.style.display = '';
+    badgeWrap.innerHTML = '';
+
+    document.getElementById('signerName').value = '';
+    sigHasContent = false;
+    // Canvas is hidden until the view becomes visible — size it after display.
+    setTimeout(resizeCanvas, 100);
+  }
+}
+
+async function deleteCurrentDraft() {
+  if (!currentDraftData) return;
+  if (!confirm('Ali res želite izbrisati ta osnutek? / Delete this draft?')) return;
+  await dbDelete(currentDraftData.id);
+  currentDraftData = null;
+  showToast('Osnutek izbrisan / Draft deleted');
+  showView('drafts');
+}
+
+/* ---------- Signature canvas ---------- */
+function getCanvasCtx() {
+  return document.getElementById('signatureCanvas').getContext('2d');
+}
+
+function resizeCanvas() {
+  const wrap = document.getElementById('sigWrap');
+  const canvas = document.getElementById('signatureCanvas');
+  const width = wrap.clientWidth;
+  if (width < 1) { sigCanvasReady = false; return; } // guard: wrapper not visible/sized yet
+
+  const cssHeight = 150;
+  const dpr = window.devicePixelRatio || 1;
+
+  // Preserve existing drawing if any before resizing (best-effort).
+  let prevData = null;
+  if (sigCanvasReady && canvas.width > 0 && canvas.height > 0) {
+    try { prevData = canvas.toDataURL(); } catch (e) { /* ignore */ }
+  }
+
+  canvas.width = width * dpr;
+  canvas.height = cssHeight * dpr;
+  canvas.style.width = width + 'px';
+  canvas.style.height = cssHeight + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.scale(dpr, dpr);
+  ctx.lineWidth = 2.2;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#1A3A6B';
+
+  sigCanvasReady = true;
+
+  if (prevData && sigHasContent) {
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0, width, cssHeight);
+    img.src = prevData;
+  }
+}
+
+function ensureCanvasReady() {
+  // Safety net: some mobile browsers report clientWidth 0 briefly right after
+  // the view becomes visible. Re-check/resize just before the first stroke.
+  const wrap = document.getElementById('sigWrap');
+  if (!sigCanvasReady || wrap.clientWidth < 1) {
+    resizeCanvas();
+  }
+}
+
+function getPointerPos(evt) {
+  const canvas = document.getElementById('signatureCanvas');
+  const rect = canvas.getBoundingClientRect();
+  const point = evt.touches ? evt.touches[0] : evt;
+  return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+}
+
+function sigStart(evt) {
+  ensureCanvasReady();
+  evt.preventDefault();
+  const pos = getPointerPos(evt);
+  sigDrawing = true;
+  sigLastX = pos.x;
+  sigLastY = pos.y;
+  document.getElementById('sigPlaceholder').style.display = 'none';
+}
+
+function sigMove(evt) {
+  if (!sigDrawing) return;
+  evt.preventDefault();
+  const pos = getPointerPos(evt);
+  const ctx = getCanvasCtx();
+  ctx.beginPath();
+  ctx.moveTo(sigLastX, sigLastY);
+  ctx.lineTo(pos.x, pos.y);
+  ctx.stroke();
+  sigLastX = pos.x;
+  sigLastY = pos.y;
+  sigHasContent = true;
+}
+
+function sigEnd() {
+  sigDrawing = false;
+}
+
+function clearSignature() {
+  const canvas = document.getElementById('signatureCanvas');
+  const ctx = getCanvasCtx();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  sigHasContent = false;
+  document.getElementById('sigPlaceholder').style.display = '';
+}
+
+function initSignaturePad() {
+  const canvas = document.getElementById('signatureCanvas');
+  canvas.addEventListener('mousedown', sigStart);
+  canvas.addEventListener('mousemove', sigMove);
+  window.addEventListener('mouseup', sigEnd);
+  canvas.addEventListener('touchstart', sigStart, { passive: false });
+  canvas.addEventListener('touchmove', sigMove, { passive: false });
+  canvas.addEventListener('touchend', sigEnd, { passive: false });
+  window.addEventListener('resize', () => { if (sigCanvasReady) resizeCanvas(); });
+}
+
+async function signAndApprove() {
+  const signerName = document.getElementById('signerName').value.trim();
+  if (!signerName) { showToast('Vnesite ime podpisnika / Enter signer name'); return; }
+  if (!sigHasContent) { showToast('Prosimo, podpišite / Please sign'); return; }
+
+  const canvas = document.getElementById('signatureCanvas');
+  const signatureDataUrl = canvas.toDataURL('image/png');
+
+  currentDraftData.status = 'signed';
+  currentDraftData.signerName = signerName;
+  currentDraftData.signatureDataUrl = signatureDataUrl;
+  currentDraftData.signedAt = new Date().toISOString();
+
+  await dbPut(currentDraftData);
+  showToast('Podpisano in odobreno / Signed and approved');
+  renderReview(currentDraftData);
+}
+
+/* ---------- PDF generation ---------- */
+function sanitizeForFilename(str) {
+  // Transliterate diacritics (č š ž ć đ ...) to plain ASCII rather than
+  // dropping them, so a name like "Žiga Črnič" becomes "Ziga_Crnic" instead
+  // of losing the accented letters entirely.
+  const ascii = (str || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd').replace(/Đ/g, 'D');
+  return ascii.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '') || 'x';
+}
+
+function buildFilename(d) {
+  const weekStr = String(d.week).padStart(2, '0');
+  return `Urenstaat_${sanitizeForFilename(d.workerName)}_${sanitizeForFilename(d.project)}_Week${weekStr}_SIGNED.pdf`;
+}
+
+function buildPDF(d) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const marginX = 15;
+  let y = 15;
+
+  // jsPDF's built-in 'helvetica' uses WinAnsi encoding, which silently drops
+  // Slovenian/Croatian diacritics (č š ž ć đ). Use the embedded Roboto font
+  // (full Unicode glyph coverage) when it has preloaded; fall back to
+  // helvetica (ASCII-safe but no diacritics) if the fetch hasn't landed yet.
+  let PDF_FONT = 'helvetica';
+  if (robotoRegularB64 && robotoBoldB64) {
+    doc.addFileToVFS('Roboto-Regular.ttf', robotoRegularB64);
+    doc.addFont('Roboto-Regular.ttf', 'Roboto', 'normal');
+    doc.addFileToVFS('Roboto-Bold.ttf', robotoBoldB64);
+    doc.addFont('Roboto-Bold.ttf', 'Roboto', 'bold');
+    PDF_FONT = 'Roboto';
+  }
+
+  const NAVY = [26, 58, 107];
+  const ORANGE = [242, 140, 30];
+  const GREY = [107, 114, 128];
+  const LIGHT_GREY = [242, 244, 247];
+  const GREEN = [46, 125, 50];
+  const GREEN_LIGHT = [232, 245, 233];
+  const BLACK = [10, 10, 10];
+  const WHITE = [255, 255, 255];
+
+  // --- Header ---
+  if (logoDataUrl) {
+    try { doc.addImage(logoDataUrl, 'PNG', marginX, y, 42, 14); } catch (e) { /* ignore */ }
+  }
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(16);
+  doc.setTextColor(...NAVY);
+  doc.text('METALIKA d.o.o.', pageWidth - marginX, y + 6, { align: 'right' });
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(11);
+  doc.setTextColor(...ORANGE);
+  doc.text('Urenstaat / Timesheet', pageWidth - marginX, y + 12, { align: 'right' });
+
+  y += 22;
+  doc.setDrawColor(...ORANGE);
+  doc.setLineWidth(0.8);
+  doc.line(marginX, y, pageWidth - marginX, y);
+  y += 8;
+
+  // --- Worker info box ---
+  const boxH = 26;
+  doc.setFillColor(...LIGHT_GREY);
+  doc.roundedRect(marginX, y, pageWidth - marginX * 2, boxH, 2, 2, 'F');
+  doc.setFontSize(10);
+  doc.setTextColor(...BLACK);
+  const infoX = marginX + 5;
+  let infoY = y + 7;
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Delavec / Worker:', infoX, infoY);
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(String(d.workerName || ''), infoX + 40, infoY);
+
+  infoY += 6.5;
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Projekt / Project:', infoX, infoY);
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(String(d.project || ''), infoX + 40, infoY);
+
+  infoY += 6.5;
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Teden / Week:', infoX, infoY);
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(`${d.week} / ${d.year}`, infoX + 40, infoY);
+
+  infoY += 6.5;
+  doc.setFont(PDF_FONT, 'bold');
+  doc.text('Obdobje / Period:', infoX, infoY);
+  doc.setFont(PDF_FONT, 'normal');
+  doc.text(`${formatDateDisplay(d.dateFrom)} - ${formatDateDisplay(d.dateTo)}`, infoX + 40, infoY);
+
+  y += boxH + 10;
+
+  // --- Hours table ---
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...NAVY);
+  doc.text('Ure / Hours', marginX, y);
+  y += 5;
+
+  const rows = [
+    ['Redne ure / Normal hours (Mon-Fri)', d.hoursNormal],
+    ['Nadure / Overtime (Mon-Fri)', d.hoursOvertime],
+    ['Sobota / Saturday', d.hoursSaturday],
+    ['Nedelja / Sunday', d.hoursSunday],
+    ['Prazniki / Public holidays', d.hoursHoliday],
+    ['Delo v tujini / Foreign country work', d.hoursForeign],
+  ];
+  const rowH = 7;
+  const tableW = pageWidth - marginX * 2;
+
+  rows.forEach((row, i) => {
+    if (i % 2 === 0) {
+      doc.setFillColor(...LIGHT_GREY);
+      doc.rect(marginX, y, tableW, rowH, 'F');
+    }
+    doc.setFont(PDF_FONT, 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(...BLACK);
+    doc.text(row[0], marginX + 3, y + rowH - 2.3);
+    doc.text(String(row[1]) + ' h', pageWidth - marginX - 3, y + rowH - 2.3, { align: 'right' });
+    y += rowH;
+  });
+
+  // Total row - black fill, white text
+  doc.setFillColor(...BLACK);
+  doc.rect(marginX, y, tableW, rowH + 1, 'F');
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(...WHITE);
+  doc.text('SKUPAJ / TOTAL', marginX + 3, y + rowH - 1.8);
+  doc.text(String(d.totalHours) + ' h', pageWidth - marginX - 3, y + rowH - 1.8, { align: 'right' });
+  y += rowH + 1 + 9;
+
+  // --- Kilometres ---
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(11);
+  doc.setTextColor(...NAVY);
+  doc.text('Kilometri / Kilometres', marginX, y);
+  y += 6;
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(...BLACK);
+  doc.text(`Prevoženi kilometri / Kilometres driven: ${d.km} km`, marginX, y);
+  y += 5.5;
+  doc.setFontSize(8.5);
+  doc.setTextColor(...GREY);
+  // NOTE: jsPDF's core 'helvetica' font has no italic variant — use 'normal'.
+  doc.setFont(PDF_FONT, 'normal');
+  const kmNote = 'Samo za interno evidenco — se ne zaračuna stranki. / For internal records only — not charged to client.';
+  doc.text(doc.splitTextToSize(kmNote, tableW), marginX, y);
+  y += 10;
+
+  // --- Notes ---
+  if (d.notes) {
+    doc.setFont(PDF_FONT, 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(...NAVY);
+    doc.text('Opombe / Notes', marginX, y);
+    y += 6;
+    doc.setFont(PDF_FONT, 'normal');
+    doc.setFontSize(10);
+    doc.setTextColor(...BLACK);
+    const noteLines = doc.splitTextToSize(d.notes, tableW);
+    doc.text(noteLines, marginX, y);
+    y += noteLines.length * 5 + 6;
+  }
+
+  // Page break guard before approval box
+  if (y > 230) { doc.addPage(); y = 20; }
+
+  // --- Approval box ---
+  const sigBoxH = 42;
+  doc.setFillColor(...GREEN_LIGHT);
+  doc.setDrawColor(...GREEN);
+  doc.setLineWidth(0.5);
+  doc.roundedRect(marginX, y, tableW, sigBoxH, 2, 2, 'FD');
+
+  doc.setFont(PDF_FONT, 'bold');
+  doc.setFontSize(10.5);
+  doc.setTextColor(...GREEN);
+  doc.text('ODOBRENO / APPROVED', marginX + 5, y + 7);
+
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(9.5);
+  doc.setTextColor(...BLACK);
+  doc.text(`Odobril / Approved by: ${d.signerName || ''}`, marginX + 5, y + 14);
+  doc.text(`Datum in čas / Date & time: ${formatDateTimeDisplay(d.signedAt)}`, marginX + 5, y + 20);
+
+  if (d.signatureDataUrl) {
+    try {
+      doc.addImage(d.signatureDataUrl, 'PNG', pageWidth - marginX - 45, y + 6, 42, 30);
+    } catch (e) { /* ignore malformed image */ }
+  }
+
+  y += sigBoxH + 10;
+
+  // --- Footer ---
+  const footerY = 285;
+  doc.setDrawColor(226, 229, 234);
+  doc.line(marginX, footerY - 5, pageWidth - marginX, footerY - 5);
+  doc.setFont(PDF_FONT, 'normal');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...GREY);
+  doc.text('Metalika d.o.o.  |  www.metalika.si', marginX, footerY);
+  doc.text(`Generirano / Generated: ${formatDateTimeDisplay(new Date().toISOString())}`, pageWidth - marginX, footerY, { align: 'right' });
+
+  return doc;
+}
+
+function exportPDF() {
+  // IMPORTANT (mobile): build the PDF and call share/save synchronously
+  // within the click handler using the already-loaded currentDraftData.
+  // Do not await/fetch from IndexedDB here — async work in this handler
+  // causes iOS/Android browsers to block the share sheet / download.
+  if (!currentDraftData) { showToast('Ni podatkov / No data'); return; }
+
+  const doc = buildPDF(currentDraftData);
+  const filename = buildFilename(currentDraftData);
+  const blob = doc.output('blob');
+
+  if (navigator.share) {
+    try {
+      const file = new File([blob], filename, { type: 'application/pdf' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        navigator.share({ files: [file], title: filename, text: filename })
+          .catch(() => { doc.save(filename); });
+        return;
+      }
+    } catch (e) { /* fall through to save */ }
+  }
+  doc.save(filename);
+}
+
+/* ---------- View switching ---------- */
+function showView(name) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+
+  document.getElementById('tabNewBtn').classList.toggle('active', name === 'form');
+  document.getElementById('tabDraftsBtn').classList.toggle('active', name === 'drafts');
+
+  if (name === 'drafts') renderDraftsList();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- Toast ---------- */
+let toastTimer = null;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+/* ---------- Offline banner ---------- */
+function updateOfflineBanner() {
+  document.getElementById('offlineBanner').classList.toggle('show', !navigator.onLine);
+}
+
+/* ---------- Install banner (Add to Home Screen) ---------- */
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  if (!localStorage.getItem('metalika_install_dismissed')) {
+    document.getElementById('installBanner').classList.add('show');
+  }
+});
+
+document.getElementById('installBtn').addEventListener('click', async () => {
+  document.getElementById('installBanner').classList.remove('show');
+  if (deferredInstallPrompt) {
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+  }
+});
+
+document.getElementById('installDismissBtn').addEventListener('click', () => {
+  document.getElementById('installBanner').classList.remove('show');
+  localStorage.setItem('metalika_install_dismissed', '1');
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').classList.remove('show');
+});
+
+/* ---------- Logo preload for PDF (offline-capable via SW cache) ---------- */
+function preloadLogo() {
+  fetch('assets/metalika_logo.png')
+    .then(r => r.blob())
+    .then(blob => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    }))
+    .then(dataUrl => { logoDataUrl = dataUrl; })
+    .catch(() => { logoDataUrl = null; });
+}
+
+/* ---------- Font preload for PDF (offline-capable via SW cache) ---------- */
+function fileToBase64(path) {
+  return fetch(path)
+    .then(r => r.blob())
+    .then(blob => new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]); // strip data: prefix — jsPDF wants raw base64
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    }));
+}
+
+function preloadFonts() {
+  fileToBase64('fonts/Roboto-Regular.ttf').then(b64 => { robotoRegularB64 = b64; }).catch(() => { robotoRegularB64 = null; });
+  fileToBase64('fonts/Roboto-Bold.ttf').then(b64 => { robotoBoldB64 = b64; }).catch(() => { robotoBoldB64 = null; });
+}
+
+/* ---------- Init ---------- */
+document.addEventListener('DOMContentLoaded', async () => {
+  initFormDefaults();
+  initSignaturePad();
+  preloadLogo();
+  preloadFonts();
+
+  document.getElementById('weekNumber').addEventListener('change', recalcDatesFromWeek);
+  document.getElementById('yearNumber').addEventListener('change', recalcDatesFromWeek);
+  document.querySelectorAll('.hours-input').forEach(el => el.addEventListener('input', recalcTotal));
+
+  updateOfflineBanner();
+  window.addEventListener('online', updateOfflineBanner);
+  window.addEventListener('offline', updateOfflineBanner);
+
+  try {
+    await openDB();
+    await refreshDraftCount();
+  } catch (err) {
+    console.error('IndexedDB init failed', err);
+  }
+
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').catch(err => console.error('SW registration failed', err));
+    });
+  }
+});
+</script>
+</body>
+</html>
