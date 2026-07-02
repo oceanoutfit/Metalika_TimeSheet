@@ -1,7 +1,7 @@
 {
-  "name": "Metalika Urenstaat / Timesheet",
-  "short_name": "Metalika Urenstaat",
-  "description": "Metalika d.o.o. — tedenski urenstaat z odobritvijo in podpisom stranke / Weekly timesheet with client approval and signature.",
+  "name": "Metalika Evidenca ur / Timesheet",
+  "short_name": "Metalika Evidenca ur",
+  "description": "Metalika d.o.o. — tedenska evidenca ur z odobritvijo in podpisom stranke / Weekly timesheet with client approval and signature.",
   "id": "/metalika-timesheet/",
   "start_url": "./index.html",
   "scope": "./",

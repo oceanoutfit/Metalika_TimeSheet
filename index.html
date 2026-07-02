@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#1A3A6B">
-<meta name="description" content="Metalika d.o.o. — Urenstaat / Timesheet app">
-<title>Metalika — Urenstaat / Timesheet</title>
+<meta name="description" content="Metalika d.o.o. — Evidenca ur / Timesheet app">
+<title>Metalika — Evidenca ur / Timesheet</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<meta name="apple-mobile-web-app-title" content="Urenstaat">
+<meta name="apple-mobile-web-app-title" content="Evidenca ur">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
@@ -244,7 +244,7 @@
   <header class="app-header">
     <img class="logo" src="assets/metalika_logo.png" alt="Metalika">
     <div class="title-block">
-      <h1>Urenstaat <span style="color:#cdd9ec;font-weight:400;">/ Timesheet</span></h1>
+      <h1>Evidenca ur <span style="color:#cdd9ec;font-weight:400;">/ Timesheet</span></h1>
       <div class="sub">Metalika d.o.o. — www.metalika.si</div>
     </div>
   </header>
@@ -338,15 +338,9 @@
             </div>
           </div>
 
-          <div class="row2">
-            <div class="field">
-              <label class="field-label" for="hoursHoliday">Prazniki <span class="en">Public holidays</span></label>
-              <input type="number" id="hoursHoliday" min="0" step="0.5" value="0" class="hours-input">
-            </div>
-            <div class="field">
-              <label class="field-label" for="hoursForeign">Delo v tujini <span class="en">Foreign country work</span></label>
-              <input type="number" id="hoursForeign" min="0" step="0.5" value="0" class="hours-input">
-            </div>
+          <div class="field">
+            <label class="field-label" for="hoursHoliday">Prazniki <span class="en">Public holidays</span></label>
+            <input type="number" id="hoursHoliday" min="0" step="0.5" value="0" class="hours-input">
           </div>
         </div>
 
@@ -405,7 +399,6 @@
           <tr><td>Sobota / Saturday</td><td class="hval" id="rv-saturday"></td></tr>
           <tr><td>Nedelja / Sunday</td><td class="hval" id="rv-sunday"></td></tr>
           <tr><td>Prazniki / Holidays</td><td class="hval" id="rv-holiday"></td></tr>
-          <tr><td>Delo v tujini / Foreign</td><td class="hval" id="rv-foreign"></td></tr>
         </table>
       </div>
 
@@ -481,7 +474,7 @@
 <script src="jspdf.umd.min.js"></script>
 <script>
 /* =========================================================================
-   METALIKA d.o.o. — Urenstaat / Timesheet PWA
+   METALIKA d.o.o. — Evidenca ur / Timesheet PWA
    Single-file client-side app. No backend. IndexedDB draft persistence.
    ========================================================================= */
 
@@ -624,7 +617,7 @@ function recalcDatesFromWeek() {
 }
 
 function recalcTotal() {
-  const ids = ['hoursNormal','hoursOvertime','hoursSaturday','hoursSunday','hoursHoliday','hoursForeign'];
+  const ids = ['hoursNormal','hoursOvertime','hoursSaturday','hoursSunday','hoursHoliday'];
   let total = 0;
   ids.forEach(id => {
     const v = parseFloat(document.getElementById(id).value);
@@ -665,7 +658,6 @@ function collectFormData() {
     hoursSaturday: parseFloat(document.getElementById('hoursSaturday').value) || 0,
     hoursSunday: parseFloat(document.getElementById('hoursSunday').value) || 0,
     hoursHoliday: parseFloat(document.getElementById('hoursHoliday').value) || 0,
-    hoursForeign: parseFloat(document.getElementById('hoursForeign').value) || 0,
     totalHours: recalcTotal(),
     km: parseFloat(document.getElementById('km').value) || 0,
     notes: document.getElementById('notes').value.trim(),
@@ -760,7 +752,6 @@ function renderReview(d) {
   document.getElementById('rv-saturday').textContent = d.hoursSaturday;
   document.getElementById('rv-sunday').textContent = d.hoursSunday;
   document.getElementById('rv-holiday').textContent = d.hoursHoliday;
-  document.getElementById('rv-foreign').textContent = d.hoursForeign;
   document.getElementById('rv-total').textContent = d.totalHours;
   document.getElementById('rv-km').textContent = `${d.km} km`;
 
@@ -948,7 +939,7 @@ function sanitizeForFilename(str) {
 
 function buildFilename(d) {
   const weekStr = String(d.week).padStart(2, '0');
-  return `Urenstaat_${sanitizeForFilename(d.workerName)}_${sanitizeForFilename(d.project)}_Week${weekStr}_SIGNED.pdf`;
+  return `EvidencaUr_${sanitizeForFilename(d.workerName)}_${sanitizeForFilename(d.project)}_Week${weekStr}_SIGNED.pdf`;
 }
 
 function buildPDF(d) {
@@ -991,7 +982,7 @@ function buildPDF(d) {
   doc.setFont(PDF_FONT, 'normal');
   doc.setFontSize(11);
   doc.setTextColor(...ORANGE);
-  doc.text('Urenstaat / Timesheet', pageWidth - marginX, y + 12, { align: 'right' });
+  doc.text('Evidenca ur / Timesheet', pageWidth - marginX, y + 12, { align: 'right' });
 
   y += 22;
   doc.setDrawColor(...ORANGE);
@@ -1000,7 +991,7 @@ function buildPDF(d) {
   y += 8;
 
   // --- Worker info box ---
-  const boxH = 26;
+  const boxH = 32;
   doc.setFillColor(...LIGHT_GREY);
   doc.roundedRect(marginX, y, pageWidth - marginX * 2, boxH, 2, 2, 'F');
   doc.setFontSize(10);
@@ -1045,7 +1036,6 @@ function buildPDF(d) {
     ['Sobota / Saturday', d.hoursSaturday],
     ['Nedelja / Sunday', d.hoursSunday],
     ['Prazniki / Public holidays', d.hoursHoliday],
-    ['Delo v tujini / Foreign country work', d.hoursForeign],
   ];
   const rowH = 7;
   const tableW = pageWidth - marginX * 2;
